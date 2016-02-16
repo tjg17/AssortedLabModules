@@ -160,12 +160,18 @@ class SetVolumeScalarsLogic(ScriptedLoadableModuleLogic):
     and assigns the summed values to the outputVolumeNode. All inputs and output volumes
     must be the same size"""
 
+    imdata1 = inputVolumeNode1.GetImageData()
+    imdata2 = inputVolumeNode2.GetImageData()
+    outdata = outputVolumeNode.GetImageData()
 
-    
-    print "here"
-
-
-
+    # Loop through all indexes and sum image data from inputs
+    for x in range(0, imdata1.GetDimensions()[0]):
+      for y in range(0, imdata1.GetDimensions()[1]):
+        for z in range(0, imdata1.GetDimensions()[2]):
+          # Get pixel values from inputs
+          new_pixel_val = imdata1.GetScalarComponentAsFloat(x,y,z,0)+imdata2.GetScalarComponentAsFloat(x,y,z,0)
+          # Set pixel value on output
+          outdata.SetScalarComponentFromFloat(x,y,z,0,new_pixel_val)
 
   def run(self, inputVolume1, inputVolume2, outputVolume):
     """
