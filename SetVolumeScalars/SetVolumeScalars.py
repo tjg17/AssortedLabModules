@@ -3,6 +3,7 @@ import unittest
 from __main__ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import logging
+import time
 
 #
 # SetVolumeScalars
@@ -154,22 +155,35 @@ class SetVolumeScalarsLogic(ScriptedLoadableModuleLogic):
       return False
     return True
 
+  def SumPixelValues(self,inputVolumeNode1, inputVolumeNode2, outputVolumeNode):
+    """This method sums the pixel values at all locations in the two input volume nodes 
+    and assigns the summed values to the outputVolumeNode. All inputs and output volumes
+    must be the same size"""
+
+
+    
+    print "here"
+
+
+
+
   def run(self, inputVolume1, inputVolume2, outputVolume):
     """
     Run the actual algorithm
     """
 
-    logging.info('Processing started')
+    # Starting Print Statements
+    logging.info('\n\nProcessing started')
+    print('Expected Algorithm Time: 30 seconds') # based on previous trials of the algorithm
+    start_time_overall = time.time() # start timer
 
-    # Compute the thresholded output volume using the Threshold Scalar Volume CLI module
-    cliParams = {'InputVolume': inputVolume.GetID(), 'OutputVolume': outputVolume.GetID(), 'ThresholdValue' : imageThreshold, 'ThresholdType' : 'Above'}
-    cliNode = slicer.cli.run(slicer.modules.thresholdscalarvolume, None, cliParams, wait_for_completion=True)
+    # Sum Pixel Values in input images toi get output image
+    self.SumPixelValues(inputVolume1, inputVolume2, outputVolume)
 
-    # Capture screenshot
-    if enableScreenshots:
-      self.takeScreenshot('SetVolumeScalarsTest-Start','MyScreenshot',-1)
-
+    # Ending Print Statements
+    end_time_overall = time.time()
     logging.info('Processing completed')
+    print('Overall Algorithm Time: % 0.1f seconds') % float(end_time_overall-start_time_overall)
 
     return True
 
