@@ -53,19 +53,34 @@ class SetVolumeScalarsWidget(ScriptedLoadableModuleWidget):
     parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
 
     #
-    # input volume selector
+    # input volume 1 selector
     #
-    self.inputSelector = slicer.qMRMLNodeComboBox()
-    self.inputSelector.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
-    self.inputSelector.selectNodeUponCreation = True
-    self.inputSelector.addEnabled = False
-    self.inputSelector.removeEnabled = False
-    self.inputSelector.noneEnabled = False
-    self.inputSelector.showHidden = False
-    self.inputSelector.showChildNodeTypes = False
-    self.inputSelector.setMRMLScene( slicer.mrmlScene )
-    self.inputSelector.setToolTip( "Pick the input to the algorithm." )
-    parametersFormLayout.addRow("Input Volume: ", self.inputSelector)
+    self.inputSelector1 = slicer.qMRMLNodeComboBox()
+    self.inputSelector1.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
+    self.inputSelector1.selectNodeUponCreation = True
+    self.inputSelector1.addEnabled = False
+    self.inputSelector1.removeEnabled = False
+    self.inputSelector1.noneEnabled = False
+    self.inputSelector1.showHidden = False
+    self.inputSelector1.showChildNodeTypes = False
+    self.inputSelector1.setMRMLScene( slicer.mrmlScene )
+    self.inputSelector1.setToolTip( "Pick the input to the algorithm." )
+    parametersFormLayout.addRow("Input Volume 1: ", self.inputSelector1)
+
+    #
+    # input volume 2 selector
+    #
+    self.inputSelector2 = slicer.qMRMLNodeComboBox()
+    self.inputSelector2.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
+    self.inputSelector2.selectNodeUponCreation = True
+    self.inputSelector2.addEnabled = False
+    self.inputSelector2.removeEnabled = False
+    self.inputSelector2.noneEnabled = False
+    self.inputSelector2.showHidden = False
+    self.inputSelector2.showChildNodeTypes = False
+    self.inputSelector2.setMRMLScene( slicer.mrmlScene )
+    self.inputSelector2.setToolTip( "Pick the input to the algorithm." )
+    parametersFormLayout.addRow("Input Volume 2: ", self.inputSelector2)
 
     #
     # output volume selector
@@ -83,25 +98,6 @@ class SetVolumeScalarsWidget(ScriptedLoadableModuleWidget):
     parametersFormLayout.addRow("Output Volume: ", self.outputSelector)
 
     #
-    # threshold value
-    #
-    self.imageThresholdSliderWidget = ctk.ctkSliderWidget()
-    self.imageThresholdSliderWidget.singleStep = 0.1
-    self.imageThresholdSliderWidget.minimum = -100
-    self.imageThresholdSliderWidget.maximum = 100
-    self.imageThresholdSliderWidget.value = 0.5
-    self.imageThresholdSliderWidget.setToolTip("Set threshold value for computing the output image. Voxels that have intensities lower than this value will set to zero.")
-    parametersFormLayout.addRow("Image threshold", self.imageThresholdSliderWidget)
-
-    #
-    # check box to trigger taking screen shots for later use in tutorials
-    #
-    self.enableScreenshotsFlagCheckBox = qt.QCheckBox()
-    self.enableScreenshotsFlagCheckBox.checked = 0
-    self.enableScreenshotsFlagCheckBox.setToolTip("If checked, take screen shots for tutorials. Use Save Data to write them to disk.")
-    parametersFormLayout.addRow("Enable Screenshots", self.enableScreenshotsFlagCheckBox)
-
-    #
     # Apply Button
     #
     self.applyButton = qt.QPushButton("Apply")
@@ -111,7 +107,8 @@ class SetVolumeScalarsWidget(ScriptedLoadableModuleWidget):
 
     # connections
     self.applyButton.connect('clicked(bool)', self.onApplyButton)
-    self.inputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.inputSelector1.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.inputSelector2.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.outputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
 
     # Add vertical spacer
@@ -124,13 +121,11 @@ class SetVolumeScalarsWidget(ScriptedLoadableModuleWidget):
     pass
 
   def onSelect(self):
-    self.applyButton.enabled = self.inputSelector.currentNode() and self.outputSelector.currentNode()
+    self.applyButton.enabled = self.inputSelector1.currentNode() and self.inputSelector1.currentNode() and self.outputSelector.currentNode()
 
   def onApplyButton(self):
     logic = SetVolumeScalarsLogic()
-    enableScreenshotsFlag = self.enableScreenshotsFlagCheckBox.checked
-    imageThreshold = self.imageThresholdSliderWidget.value
-    logic.run(self.inputSelector.currentNode(), self.outputSelector.currentNode(), imageThreshold, enableScreenshotsFlag)
+    logic.run(self.inputSelector1.currentNode(), self.inputSelector2.currentNode(), self.outputSelector.currentNode())
 
 #
 # SetVolumeScalarsLogic
@@ -159,65 +154,10 @@ class SetVolumeScalarsLogic(ScriptedLoadableModuleLogic):
       return False
     return True
 
-  def isValidInputOutputData(self, inputVolumeNode, outputVolumeNode):
-    """Validates if the output is not the same as input
-    """
-    if not inputVolumeNode:
-      logging.debug('isValidInputOutputData failed: no input volume node defined')
-      return False
-    if not outputVolumeNode:
-      logging.debug('isValidInputOutputData failed: no output volume node defined')
-      return False
-    if inputVolumeNode.GetID()==outputVolumeNode.GetID():
-      logging.debug('isValidInputOutputData failed: input and output volume is the same. Create a new volume for output to avoid this error.')
-      return False
-    return True
-
-  def takeScreenshot(self,name,description,type=-1):
-    # show the message even if not taking a screen shot
-    slicer.util.delayDisplay('Take screenshot: '+description+'.\nResult is available in the Annotations module.', 3000)
-
-    lm = slicer.app.layoutManager()
-    # switch on the type to get the requested window
-    widget = 0
-    if type == slicer.qMRMLScreenShotDialog.FullLayout:
-      # full layout
-      widget = lm.viewport()
-    elif type == slicer.qMRMLScreenShotDialog.ThreeD:
-      # just the 3D window
-      widget = lm.threeDWidget(0).threeDView()
-    elif type == slicer.qMRMLScreenShotDialog.Red:
-      # red slice window
-      widget = lm.sliceWidget("Red")
-    elif type == slicer.qMRMLScreenShotDialog.Yellow:
-      # yellow slice window
-      widget = lm.sliceWidget("Yellow")
-    elif type == slicer.qMRMLScreenShotDialog.Green:
-      # green slice window
-      widget = lm.sliceWidget("Green")
-    else:
-      # default to using the full window
-      widget = slicer.util.mainWindow()
-      # reset the type so that the node is set correctly
-      type = slicer.qMRMLScreenShotDialog.FullLayout
-
-    # grab and convert to vtk image data
-    qpixMap = qt.QPixmap().grabWidget(widget)
-    qimage = qpixMap.toImage()
-    imageData = vtk.vtkImageData()
-    slicer.qMRMLUtils().qImageToVtkImageData(qimage,imageData)
-
-    annotationLogic = slicer.modules.annotations.logic()
-    annotationLogic.CreateSnapShot(name, description, type, 1, imageData)
-
-  def run(self, inputVolume, outputVolume, imageThreshold, enableScreenshots=0):
+  def run(self, inputVolume1, inputVolume2, outputVolume):
     """
     Run the actual algorithm
     """
-
-    if not self.isValidInputOutputData(inputVolume, outputVolume):
-      slicer.util.errorDisplay('Input volume is the same as output volume. Choose a different output volume.')
-      return False
 
     logging.info('Processing started')
 
