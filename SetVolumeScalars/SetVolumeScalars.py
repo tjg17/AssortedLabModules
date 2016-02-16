@@ -168,8 +168,8 @@ class SetVolumeScalarsLogic(ScriptedLoadableModuleLogic):
     for x in range(0, imdata1.GetDimensions()[0]):
       for y in range(0, imdata1.GetDimensions()[1]):
         for z in range(0, imdata1.GetDimensions()[2]):
-          # Get pixel values from inputs
-          new_pixel_val = imdata1.GetScalarComponentAsFloat(x,y,z,0)+imdata2.GetScalarComponentAsFloat(x,y,z,0)
+          # Get pixel values from inputs and averages
+          new_pixel_val = (imdata1.GetScalarComponentAsFloat(x,y,z,0)+imdata2.GetScalarComponentAsFloat(x,y,z,0))/2
           # Set pixel value on output
           outdata.SetScalarComponentFromFloat(x,y,z,0,new_pixel_val)
 
@@ -180,7 +180,7 @@ class SetVolumeScalarsLogic(ScriptedLoadableModuleLogic):
 
     # Starting Print Statements
     logging.info('\n\nProcessing started')
-    print('Expected Algorithm Time: 30 seconds') # based on previous trials of the algorithm
+    print('Expected Algorithm Time: 120 seconds') # based on previous trials of the algorithm
     start_time_overall = time.time() # start timer
 
     # Sum Pixel Values in input images toi get output image
