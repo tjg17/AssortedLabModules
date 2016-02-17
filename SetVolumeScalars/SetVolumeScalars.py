@@ -84,21 +84,6 @@ class SetVolumeScalarsWidget(ScriptedLoadableModuleWidget):
     parametersFormLayout.addRow("Input Volume 2: ", self.inputSelector2)
 
     #
-    # output volume selector
-    #
-    self.outputSelector = slicer.qMRMLNodeComboBox()
-    self.outputSelector.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
-    self.outputSelector.selectNodeUponCreation = True
-    self.outputSelector.addEnabled = True
-    self.outputSelector.removeEnabled = True
-    self.outputSelector.noneEnabled = True
-    self.outputSelector.showHidden = False
-    self.outputSelector.showChildNodeTypes = False
-    self.outputSelector.setMRMLScene( slicer.mrmlScene )
-    self.outputSelector.setToolTip( "Pick the output to the algorithm." )
-    parametersFormLayout.addRow("Output Volume: ", self.outputSelector)
-
-    #
     # Apply Button
     #
     self.applyButton = qt.QPushButton("Apply")
@@ -110,7 +95,6 @@ class SetVolumeScalarsWidget(ScriptedLoadableModuleWidget):
     self.applyButton.connect('clicked(bool)', self.onApplyButton)
     self.inputSelector1.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.inputSelector2.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
-    self.outputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
 
     # Add vertical spacer
     self.layout.addStretch(1)
@@ -122,11 +106,11 @@ class SetVolumeScalarsWidget(ScriptedLoadableModuleWidget):
     pass
 
   def onSelect(self):
-    self.applyButton.enabled = self.inputSelector1.currentNode() and self.inputSelector1.currentNode() and self.outputSelector.currentNode()
+    self.applyButton.enabled = self.inputSelector1.currentNode() and self.inputSelector1.currentNode()
 
   def onApplyButton(self):
     logic = SetVolumeScalarsLogic()
-    logic.run(self.inputSelector1.currentNode(), self.inputSelector2.currentNode(), self.outputSelector.currentNode())
+    logic.run(self.inputSelector1.currentNode(), self.inputSelector2.currentNode())
 
 #
 # SetVolumeScalarsLogic
@@ -160,6 +144,11 @@ class SetVolumeScalarsLogic(ScriptedLoadableModuleLogic):
     and assigns the summed values to the outputVolumeNode. All inputs and output volumes
     must be the same size"""
 
+    # Print to Slicer CLI
+    print('Combining input pixels...'),
+    start_time = time.time()
+
+    # Get image data for all inputs
     imdata1 = inputVolumeNode1.GetImageData()
     imdata2 = inputVolumeNode2.GetImageData()
     outdata = outputVolumeNode.GetImageData()
@@ -173,7 +162,29 @@ class SetVolumeScalarsLogic(ScriptedLoadableModuleLogic):
           # Set pixel value on output
           outdata.SetScalarComponentFromFloat(x,y,z,0,new_pixel_val)
 
-  def run(self, inputVolume1, inputVolume2, outputVolume):
+    # Print to Slicer CLI
+    end_time = time.time()
+    print('done (%0.2f s)') % float(end_time-start_time)
+
+  def CloneVolumeNode(self,inputNode,newNodeName):
+    """ Clones the input volume node to give an output node with the same parameters but a new name
+    given by the newNodeName parameter """
+
+    # Print to Slicer CLI
+    print('Cloning input to get output volume...'),
+    start_time = time.time()
+
+    # Logic for cloning volume
+    volumesLogic = slicer.modules.volumes.logic()
+    clonedVolumeNode = volumesLogic.CloneVolume(slicer.mrmlScene, inputNode, newNodeName)
+
+    # Print to Slicer CLI
+    end_time = time.time()
+    print('done (%0.2f s)') % float(end_time-start_time)
+
+    return clonedVolumeNode
+
+  def run(self, inputVolume1, inputVolume2):
     """
     Run the actual algorithm
     """
@@ -183,6 +194,9 @@ class SetVolumeScalarsLogic(ScriptedLoadableModuleLogic):
     print('Expected Algorithm Time: 120 seconds') # based on previous trials of the algorithm
     start_time_overall = time.time() # start timer
 
+    # Create output volume as clone of input volume 1
+    outputVolume = self.CloneVolumeNode(inputVolume1,'CombinedVolume')
+    
     # Sum Pixel Values in input images toi get output image
     self.SumPixelValues(inputVolume1, inputVolume2, outputVolume)
 
