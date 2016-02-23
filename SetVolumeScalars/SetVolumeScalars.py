@@ -221,7 +221,7 @@ class SetVolumeScalarsLogic(ScriptedLoadableModuleLogic):
 
     # Starting Print Statements
     logging.info('\n\nProcessing started')
-    print('Expected Algorithm Time: 120 seconds') # based on previous trials of the algorithm
+    print('Expected Algorithm Time: 33 seconds') # based on previous trials of the algorithm
     start_time_overall = time.time() # start timer
 
     # Create output volume as clone of input volume 1
