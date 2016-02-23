@@ -157,8 +157,7 @@ class SetVolumeScalarsLogic(ScriptedLoadableModuleLogic):
     outputImageScalars = outputVolumeNode.GetImageData().GetPointData().GetScalars()
 
     # List Comprehension to fill all values
-    for Index in xrange(outputImageScalars.GetNumberOfTuples()):
-      outputImageScalars.SetTuple1(Index,VTK_data.GetTuple1(Index))
+    [outputImageScalars.SetTuple1(Index,VTK_data.GetTuple1(Index)) for Index in xrange(outputImageScalars.GetNumberOfTuples())]
 
     # Print to Slicer CLI
     end_time = time.time()
