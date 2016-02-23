@@ -4,6 +4,8 @@ from __main__ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import logging
 import time
+from vtk.util import numpy_support
+import numpy as np
 
 #
 # SetVolumeScalars
@@ -139,32 +141,60 @@ class SetVolumeScalarsLogic(ScriptedLoadableModuleLogic):
       return False
     return True
 
-  def SumPixelValues(self,inputVolumeNode1, inputVolumeNode2, outputVolumeNode):
+  def SetOutputPixelValues(self, outputVolumeNode, outputNumpyarray):
     """This method sums the pixel values at all locations in the two input volume nodes 
     and assigns the summed values to the outputVolumeNode. All inputs and output volumes
     must be the same size"""
 
     # Print to Slicer CLI
-    print('Combining input pixels...'),
+    print('Setting output pixels...'),
     start_time = time.time()
 
-    # Get image data for all inputs
-    imdata1 = inputVolumeNode1.GetImageData()
-    imdata2 = inputVolumeNode2.GetImageData()
-    outdata = outputVolumeNode.GetImageData()
+    # Convert Numpy array to VTK (use double since will need double for SetTuple1() later)
+    VTK_data = numpy_support.numpy_to_vtk(num_array=outputNumpyarray, deep=True, array_type=vtk.VTK_UNSIGNED_INT)
 
-    # Loop through all indexes and sum image data from inputs
-    for x in range(0, imdata1.GetDimensions()[0]):
-      for y in range(0, imdata1.GetDimensions()[1]):
-        for z in range(0, imdata1.GetDimensions()[2]):
-          # Get pixel values from inputs and averages
-          new_pixel_val = (imdata1.GetScalarComponentAsFloat(x,y,z,0)+imdata2.GetScalarComponentAsFloat(x,y,z,0))/2
-          # Set pixel value on output
-          outdata.SetScalarComponentFromFloat(x,y,z,0,new_pixel_val)
+    # Get scalar data for output image
+    outputImageScalars = outputVolumeNode.GetImageData().GetPointData().GetScalars()
+
+    # List Comprehension to fill all values
+    [outputImageScalars.SetTuple1(Index,VTK_data.GetTuple1(Index)) for Index in xrange(outputImageScalars.GetNumberOfTuples())]
 
     # Print to Slicer CLI
     end_time = time.time()
     print('done (%0.2f s)') % float(end_time-start_time)
+
+  def NumpyCombinePixelValues(self,inputVolumeNode1, inputVolumeNode2):
+    """This method gets Numpy array information from the input volumes and combines 
+    the pixel information to give an output numpy array. All input volumes must 
+    be the same size"""
+
+    # Print to Slicer CLI
+    print('Combining input pixels...'),
+    start_time = time.time()
+
+    # Get Image Data for Input Volumes
+    imdata1 = inputVolumeNode1.GetImageData()
+    imdata2 = inputVolumeNode2.GetImageData()
+
+    # Get Dimensions of First Input (all inputs should match)
+    x,y,z   = imdata1.GetDimensions()
+
+    # Get scalar data for all inputs
+    scalars1 = imdata1.GetPointData().GetScalars()
+    scalars2 = imdata2.GetPointData().GetScalars()
+
+    ## Make Numpy Arrays from Scalar Data
+    array1 = numpy_support.vtk_to_numpy(scalars1)
+    array2 = numpy_support.vtk_to_numpy(scalars2)
+
+    # Combine Arrays (must divide before summing or will add to more than 256 and wrap around values)
+    outputNumpyarray = array1/2+array2/2
+
+    # Print to Slicer CLI
+    end_time = time.time()
+    print('done (%0.2f s)') % float(end_time-start_time)
+
+    return outputNumpyarray
 
   def CloneVolumeNode(self,inputNode,newNodeName):
     """ Clones the input volume node to give an output node with the same parameters but a new name
@@ -191,14 +221,17 @@ class SetVolumeScalarsLogic(ScriptedLoadableModuleLogic):
 
     # Starting Print Statements
     logging.info('\n\nProcessing started')
-    print('Expected Algorithm Time: 120 seconds') # based on previous trials of the algorithm
+    print('Expected Algorithm Time: 33 seconds') # based on previous trials of the algorithm
     start_time_overall = time.time() # start timer
 
     # Create output volume as clone of input volume 1
     outputVolume = self.CloneVolumeNode(inputVolume1,'CombinedVolume')
-    
+
     # Sum Pixel Values in input images toi get output image
-    self.SumPixelValues(inputVolume1, inputVolume2, outputVolume)
+    outputNumpyarray = self.NumpyCombinePixelValues(inputVolume1, inputVolume2)
+
+    # Set output pixels using combined Numpy array
+    self.SetOutputPixelValues(outputVolume,outputNumpyarray)
 
     # Ending Print Statements
     end_time_overall = time.time()
