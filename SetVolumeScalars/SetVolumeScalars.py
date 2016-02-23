@@ -152,7 +152,6 @@ class SetVolumeScalarsLogic(ScriptedLoadableModuleLogic):
 
     # Convert Numpy array to VTK (use double since will need double for SetTuple1() later)
     VTK_data = numpy_support.numpy_to_vtk(num_array=outputNumpyarray, deep=True, array_type=vtk.VTK_UNSIGNED_INT)
-    print VTK_data.GetRange()
 
     # Get scalar data for output image
     outputImageScalars = outputVolumeNode.GetImageData().GetPointData().GetScalars()
@@ -188,13 +187,9 @@ class SetVolumeScalarsLogic(ScriptedLoadableModuleLogic):
     ## Make Numpy Arrays from Scalar Data
     array1 = numpy_support.vtk_to_numpy(scalars1)
     array2 = numpy_support.vtk_to_numpy(scalars2)
-    print array1.max()
-    print array2.max()
 
-    # Combine Arrays
+    # Combine Arrays (must divide before summing or will add to more than 256 and wrap around values)
     outputNumpyarray = array1/2+array2/2
-    #outputNumpyarray = np.add(array1/2,array2/2)
-    print outputNumpyarray.max()
 
     # Print to Slicer CLI
     end_time = time.time()
