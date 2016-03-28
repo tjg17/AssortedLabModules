@@ -19,6 +19,7 @@ include(${Slicer_USE_FILE})
 #-----------------------------------------------------------------------------
 # Extension modules
 add_subdirectory(SetVolumeScalars)
+add_subdirectory(VisualizeTimesteps)
 ## NEXT_MODULE
 
 #-----------------------------------------------------------------------------
