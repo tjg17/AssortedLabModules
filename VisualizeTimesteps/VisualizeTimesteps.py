@@ -169,6 +169,20 @@ class VisualizeTimestepsLogic(ScriptedLoadableModuleLogic):
 
     return ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8
 
+  def CheckAllInputsPresent(self, *inputNodes):
+    """ Checks if input nodes present and if not returns false
+    """
+    i = 0 # i stays at 0 if all inputs loaded
+    for inputNode in inputNodes:
+        if isinstance(inputNode, str):
+            print "Input not present: ",
+            print inputNode
+            i = i+1 # increase i if not all nodes loaded
+
+    if i == 0:
+        return True
+    else:
+        return False
 
   def run(self, PatientNumber):
     """
@@ -182,6 +196,11 @@ class VisualizeTimestepsLogic(ScriptedLoadableModuleLogic):
 
     # Load Timesteps
     ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8 = self.loadTimesteps(PatientNumber)
+
+    # Check if all expected timesteps present
+    if not self.CheckAllInputsPresent(ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8):
+        print "Exiting process. Not all timestep files supplied.\n"
+        return
 
     # Set Window Level for all Volumes
     for volumeNode in [ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8]:
