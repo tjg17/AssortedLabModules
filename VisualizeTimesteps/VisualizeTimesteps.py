@@ -183,6 +183,47 @@ class VisualizeTimestepsLogic(ScriptedLoadableModuleLogic):
         return True
     else:
         return False
+  
+  def CenterVolume(self, *inputVolumes):
+    """ Centers an inputted volume using the image spacing, size, and origin of the volume
+    """
+    # Print to Slicer CLI
+    print('Centering volumes...'),
+    start_time = time.time()
+
+    for inputVolume in inputVolumes: # cycle through all input volumes
+
+        # Use image size and spacing to find origin coordinates
+        extent = [x-1 for x in inputVolume.GetImageData().GetDimensions()] # subtract 1 from dimensions to get extent
+        spacing = [x for x in inputVolume.GetSpacing()]
+        new_origin = [a*b/2 for a,b in zip(extent,spacing)]
+        new_origin[2] = -new_origin[2] # need to make this value negative to center the volume
+
+        # Set input volume origin to the new origin
+        inputVolume.SetOrigin(new_origin)
+
+    # print to Slicer CLI
+    end_time = time.time()
+    print('done (%0.2f s)') % float(end_time-start_time)
+
+  def US_transform(self, *ARFIinputs):
+    """ Performs inversion transform with [1 1 -1 1] diagonal entries on Ultrasound inputs
+    """
+    # Print to Slicer CLI
+    print('Transforming Ultrasound input...'),
+    start_time = time.time()
+
+    # Create inverting transform matrix
+    invert_transform = vtk.vtkMatrix4x4()
+    invert_transform.SetElement(2,2,-1) # put a -1 in 3rd entry of diagonal of matrix
+
+    # Apply transform to all input nodes
+    for ARFIinput in ARFIinputs:
+        ARFIinput.ApplyTransformMatrix(invert_transform)
+
+    # print to Slicer CLI
+    end_time = time.time()
+    print('done (%0.2f s)') % float(end_time-start_time)
 
   def run(self, PatientNumber):
     """
@@ -201,6 +242,12 @@ class VisualizeTimestepsLogic(ScriptedLoadableModuleLogic):
     if not self.CheckAllInputsPresent(ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8):
         print "Exiting process. Not all timestep files supplied.\n"
         return
+
+    # Center all Volumes
+    self.CenterVolume(ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8)
+
+    # Transform all volumes to match segmentation labels
+    self.US_transform(ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8)
 
     # Set Window Level for all Volumes
     for volumeNode in [ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8]:
