@@ -273,7 +273,7 @@ class MultiVolCombineLogic(ScriptedLoadableModuleLogic):
     outputNumpyarray1, outputNumpyarray2 = self.NumpyCombinePixelValues(inputVolume1, inputVolume2, inputVolume3, inputVolume4)
 
     # Set output volume pixels using combined Numpy array
-    outputVolume1 = self.CloneVolumeNode(inputVolume1,'ts2334') # Create output volume as clone of input volume 1
+    outputVolume1 = self.CloneVolumeNode(inputVolume1,'ts2345') # Create output volume as clone of input volume 1
     self.SetOutputPixelValues(outputVolume1,outputNumpyarray1)
 
     outputVolume2 = self.CloneVolumeNode(inputVolume1,'proj_2345') # Create output volume as clone of input volume 1

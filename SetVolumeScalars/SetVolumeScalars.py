@@ -188,7 +188,8 @@ class SetVolumeScalarsLogic(ScriptedLoadableModuleLogic):
     array2 = numpy_support.vtk_to_numpy(scalars2)
 
     # Combine Arrays (must divide before summing or will add to more than 256 and wrap around values)
-    outputNumpyarray = array1/2+array2/2
+    #outputNumpyarray = array1/2+array2/2
+    outputNumpyarray = np.around(27*np.true_divide(array1,array2)) # For Normalization
 
     # Print to Slicer CLI
     end_time = time.time()
@@ -225,7 +226,7 @@ class SetVolumeScalarsLogic(ScriptedLoadableModuleLogic):
     start_time_overall = time.time() # start timer
 
     # Create output volume as clone of input volume 1
-    outputVolume = self.CloneVolumeNode(inputVolume1,'CombinedVolume')
+    outputVolume = self.CloneVolumeNode(inputVolume1,'CombinedVolume2')
 
     # Sum Pixel Values in input images toi get output image
     outputNumpyarray = self.NumpyCombinePixelValues(inputVolume1, inputVolume2)

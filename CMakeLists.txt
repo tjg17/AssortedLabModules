@@ -22,6 +22,7 @@ add_subdirectory(SetVolumeScalars)
 add_subdirectory(VisualizeTimesteps)
 add_subdirectory(MultiVolCombine)
 add_subdirectory(ComputeRegionCNR)
+add_subdirectory(ComputeCGCNR)
 ## NEXT_MODULE
 
 #-----------------------------------------------------------------------------

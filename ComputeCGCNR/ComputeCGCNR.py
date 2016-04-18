@@ -6,17 +6,17 @@ import logging
 import time
 
 #
-# ComputeRegionCNR
+# ComputeCGCNR
 #
 
-class ComputeRegionCNR(ScriptedLoadableModule):
+class ComputeCGCNR(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "ComputeRegionCNR" # TODO make this more human readable by adding spaces
+    self.parent.title = "ComputeCGCNR" # TODO make this more human readable by adding spaces
     self.parent.categories = ["Examples"]
     self.parent.dependencies = []
     self.parent.contributors = ["John Doe (AnyWare Corp.)"] # replace with "Firstname Lastname (Organization)"
@@ -30,10 +30,10 @@ class ComputeRegionCNR(ScriptedLoadableModule):
 """ # replace with organization, grant and thanks.
 
 #
-# ComputeRegionCNRWidget
+# ComputeCGCNRWidget
 #
 
-class ComputeRegionCNRWidget(ScriptedLoadableModuleWidget):
+class ComputeCGCNRWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
@@ -114,19 +114,34 @@ class ComputeRegionCNRWidget(ScriptedLoadableModuleWidget):
     parametersFormLayout.addRow("Input Volume 4: ", self.inputSelector4)
 
     #
-    # input selector for lesion label
+    # input selector for urethra label
     #
-    self.inputSelectorLesion = slicer.qMRMLNodeComboBox()
-    self.inputSelectorLesion.nodeTypes = ( ("vtkMRMLLabelMapVolumeNode"), "" )
-    self.inputSelectorLesion.selectNodeUponCreation = True
-    self.inputSelectorLesion.addEnabled = False
-    self.inputSelectorLesion.removeEnabled = False
-    self.inputSelectorLesion.noneEnabled = False
-    self.inputSelectorLesion.showHidden = False
-    self.inputSelectorLesion.showChildNodeTypes = False
-    self.inputSelectorLesion.setMRMLScene( slicer.mrmlScene )
-    self.inputSelectorLesion.setToolTip( "Pick the input segmentation to the algorithm." )
-    parametersFormLayout.addRow("Input Lesion: ", self.inputSelectorLesion)
+    self.inputSelectorUrethra = slicer.qMRMLNodeComboBox()
+    self.inputSelectorUrethra.nodeTypes = ( ("vtkMRMLLabelMapVolumeNode"), "" )
+    self.inputSelectorUrethra.selectNodeUponCreation = True
+    self.inputSelectorUrethra.addEnabled = False
+    self.inputSelectorUrethra.removeEnabled = False
+    self.inputSelectorUrethra.noneEnabled = False
+    self.inputSelectorUrethra.showHidden = False
+    self.inputSelectorUrethra.showChildNodeTypes = False
+    self.inputSelectorUrethra.setMRMLScene( slicer.mrmlScene )
+    self.inputSelectorUrethra.setToolTip( "Pick the input segmentation to the algorithm." )
+    parametersFormLayout.addRow("Input Urethra: ", self.inputSelectorUrethra)
+
+    #
+    # input selector for CG label
+    #
+    self.inputSelectorCG = slicer.qMRMLNodeComboBox()
+    self.inputSelectorCG.nodeTypes = ( ("vtkMRMLLabelMapVolumeNode"), "" )
+    self.inputSelectorCG.selectNodeUponCreation = True
+    self.inputSelectorCG.addEnabled = False
+    self.inputSelectorCG.removeEnabled = False
+    self.inputSelectorCG.noneEnabled = False
+    self.inputSelectorCG.showHidden = False
+    self.inputSelectorCG.showChildNodeTypes = False
+    self.inputSelectorCG.setMRMLScene( slicer.mrmlScene )
+    self.inputSelectorCG.setToolTip( "Pick the input segmentation to the algorithm." )
+    parametersFormLayout.addRow("Input CG: ", self.inputSelectorCG)
 
     #
     # Apply Button
@@ -139,7 +154,7 @@ class ComputeRegionCNRWidget(ScriptedLoadableModuleWidget):
     # connections
     self.applyButton.connect('clicked(bool)', self.onApplyButton)
     self.inputSelector1.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
-    self.inputSelectorLesion.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.inputSelectorUrethra.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
 
     # Add vertical spacer
     self.layout.addStretch(1)
@@ -151,18 +166,19 @@ class ComputeRegionCNRWidget(ScriptedLoadableModuleWidget):
     pass
 
   def onSelect(self):
-    self.applyButton.enabled = self.inputSelector1.currentNode() and self.inputSelectorLesion.currentNode()
+    self.applyButton.enabled = self.inputSelector1.currentNode() and self.inputSelectorUrethra.currentNode()
 
   def onApplyButton(self):
-    logic = ComputeRegionCNRLogic()
-    logic.run(self.inputSelectorLesion.currentNode(),self.inputSelector1.currentNode(), self.inputSelector2.currentNode(), 
-                                                     self.inputSelector3.currentNode(), self.inputSelector4.currentNode())
+    logic = ComputeCGCNRLogic()
+    logic.run(self.inputSelectorUrethra.currentNode(), self.inputSelectorCG.currentNode(),
+              self.inputSelector1.currentNode(), self.inputSelector2.currentNode(), 
+              self.inputSelector3.currentNode(), self.inputSelector4.currentNode())
 
 #
-# ComputeRegionCNRLogic
+# ComputeCGCNRLogic
 #
 
-class ComputeRegionCNRLogic(ScriptedLoadableModuleLogic):
+class ComputeCGCNRLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
   computation done by your module.  The interface
   should be such that other python code can import
@@ -296,7 +312,7 @@ class ComputeRegionCNRLogic(ScriptedLoadableModuleLogic):
     for stat in stats:
       print stat
 
-  def run(self, inputLesionLabel, *inputVolumes):
+  def run(self, inputUrethraLabel, inputCGLabel, *inputVolumes):
 
     """
     Run the actual algorithm
@@ -305,20 +321,14 @@ class ComputeRegionCNRLogic(ScriptedLoadableModuleLogic):
     # Starting Print to Slicer CLI
     logging.info('\n\nProcessing started')
     start_time = time.time() # start timer
-    print('Expected Algorithm Time: 7 seconds\n') # based on previous trials of the algorithm
-
-    # Create segmentation volume as clone of input label
-    symmetricLabel = self.CloneVolumeNode(inputLesionLabel,'symmetricLabel')
-
-    # Transform Symmetric Label using L/R symmetry and Change Label Value to 25
-    self.SymmetricTransform(symmetricLabel)
-    self.ThresholdScalarVolume(symmetricLabel,  25)
+    print('Expected Algorithm Time: 5 seconds\n') # based on previous trials of the algorithm
 
     for inputVolume in inputVolumes:
 
-      # Compute Means and Std from LabelStatistics Module fir all input volumes
-      Lesion_mean, Lesion_std = self.ComputeLabelStatistics(inputVolume,inputLesionLabel)
-      symmetricLesion_mean, symmetricLesion_std = self.ComputeLabelStatistics(inputVolume,symmetricLabel)
+      # Logic Copied from LesionCNR module 
+      #Compute Means and Std from LabelStatistics Module fir all input volumes
+      Lesion_mean, Lesion_std = self.ComputeLabelStatistics(inputVolume,inputUrethraLabel)
+      symmetricLesion_mean, symmetricLesion_std = self.ComputeLabelStatistics(inputVolume,inputCGLabel)
 
       # Print Results
       self.PrintCNRResults(inputVolume, Lesion_mean, Lesion_std, symmetricLesion_mean, symmetricLesion_std)
@@ -346,7 +356,7 @@ class ComputeRegionCNRLogic(ScriptedLoadableModuleLogic):
     return True
 
 
-class ComputeRegionCNRTest(ScriptedLoadableModuleTest):
+class ComputeCGCNRTest(ScriptedLoadableModuleTest):
   """
   This is the test case for your scripted module.
   Uses ScriptedLoadableModuleTest base class, available at:
@@ -362,9 +372,9 @@ class ComputeRegionCNRTest(ScriptedLoadableModuleTest):
     """Run as few or as many tests as needed here.
     """
     self.setUp()
-    self.test_ComputeRegionCNR1()
+    self.test_ComputeCGCNR1()
 
-  def test_ComputeRegionCNR1(self):
+  def test_ComputeCGCNR1(self):
     """ Ideally you should have several levels of tests.  At the lowest level
     tests should exercise the functionality of the logic with different inputs
     (both valid and invalid).  At higher levels your tests should emulate the
@@ -396,6 +406,6 @@ class ComputeRegionCNRTest(ScriptedLoadableModuleTest):
     self.delayDisplay('Finished with download and loading')
 
     volumeNode = slicer.util.getNode(pattern="FA")
-    logic = ComputeRegionCNRLogic()
+    logic = ComputeCGCNRLogic()
     self.assertTrue( logic.hasImageData(volumeNode) )
     self.delayDisplay('Test passed!')

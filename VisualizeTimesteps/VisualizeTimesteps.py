@@ -121,44 +121,45 @@ class VisualizeTimestepsLogic(ScriptedLoadableModuleLogic):
     # Print to Slicer CLI
     print('Loading Ultrasound Inputs...'),
     start_time = time.time()
+    fileextension = '.nii.gz'
 
     # Load all timesteps
-    if slicer.util.loadVolume('/luscinia/ProstateStudy/invivo/Patient'+PatientNumber+'/loupas/avolume_ts1_737_370_366.nii.gz'):
+    if slicer.util.loadVolume('/luscinia/ProstateStudy/invivo/Patient'+PatientNumber+'/loupas/avolume_ts1_737_370_366'+fileextension):
         ts1 = slicer.util.getNode('avolume_ts1_737_370_366')
     else:
         ts1 = 'invivo/Patient'+PatientNumber+'/loupas/avolume_ts1_737_370_366.nii.gz'
 
-    if slicer.util.loadVolume('/luscinia/ProstateStudy/invivo/Patient'+PatientNumber+'/loupas/avolume_ts2_737_370_366.nii.gz'):
+    if slicer.util.loadVolume('/luscinia/ProstateStudy/invivo/Patient'+PatientNumber+'/loupas/avolume_ts2_737_370_366'+fileextension):
         ts2 = slicer.util.getNode('avolume_ts2_737_370_366')
     else:
         ts2 = 'invivo/Patient'+PatientNumber+'/loupas/avolume_ts2_737_370_366.nii.gz'
 
-    if slicer.util.loadVolume('/luscinia/ProstateStudy/invivo/Patient'+PatientNumber+'/loupas/avolume_ts3_737_370_366.nii.gz'):
+    if slicer.util.loadVolume('/luscinia/ProstateStudy/invivo/Patient'+PatientNumber+'/loupas/avolume_ts3_737_370_366'+fileextension):
         ts3 = slicer.util.getNode('avolume_ts3_737_370_366')
     else:
         ts3 = 'invivo/Patient'+PatientNumber+'/loupas/avolume_ts3_737_370_366.nii.gz'
 
-    if slicer.util.loadVolume('/luscinia/ProstateStudy/invivo/Patient'+PatientNumber+'/loupas/avolume_ts4_737_370_366.nii.gz'):
+    if slicer.util.loadVolume('/luscinia/ProstateStudy/invivo/Patient'+PatientNumber+'/loupas/avolume_ts4_737_370_366'+fileextension):
         ts4 = slicer.util.getNode('avolume_ts4_737_370_366')
     else:
         ts4 = 'invivo/Patient'+PatientNumber+'/loupas/avolume_ts4_737_370_366.nii.gz'
 
-    if slicer.util.loadVolume('/luscinia/ProstateStudy/invivo/Patient'+PatientNumber+'/loupas/avolume_ts5_737_370_366.nii.gz'):
+    if slicer.util.loadVolume('/luscinia/ProstateStudy/invivo/Patient'+PatientNumber+'/loupas/avolume_ts5_737_370_366'+fileextension):
         ts5 = slicer.util.getNode('avolume_ts5_737_370_366')
     else:
         ts5 = 'invivo/Patient'+PatientNumber+'/loupas/avolume_ts5_737_370_366.nii.gz'
 
-    if slicer.util.loadVolume('/luscinia/ProstateStudy/invivo/Patient'+PatientNumber+'/loupas/avolume_ts6_737_370_366.nii.gz'):
+    if slicer.util.loadVolume('/luscinia/ProstateStudy/invivo/Patient'+PatientNumber+'/loupas/avolume_ts6_737_370_366'+fileextension):
         ts6 = slicer.util.getNode('avolume_ts6_737_370_366')
     else:
         ts6 = 'invivo/Patient'+PatientNumber+'/loupas/avolume_ts6_737_370_366.nii.gz'
 
-    if slicer.util.loadVolume('/luscinia/ProstateStudy/invivo/Patient'+PatientNumber+'/loupas/avolume_ts7_737_370_366.nii.gz'):
+    if slicer.util.loadVolume('/luscinia/ProstateStudy/invivo/Patient'+PatientNumber+'/loupas/avolume_ts7_737_370_366'+fileextension):
         ts7 = slicer.util.getNode('avolume_ts7_737_370_366')
     else:
         ts7 = 'invivo/Patient'+PatientNumber+'/loupas/avolume_ts7_737_370_366.nii.gz'
 
-    if slicer.util.loadVolume('/luscinia/ProstateStudy/invivo/Patient'+PatientNumber+'/loupas/avolume_ts8_737_370_366.nii.gz'):
+    if slicer.util.loadVolume('/luscinia/ProstateStudy/invivo/Patient'+PatientNumber+'/loupas/avolume_ts8_737_370_366'+fileextension):
         ts8 = slicer.util.getNode('avolume_ts8_737_370_366')
     else:
         ts8 = 'invivo/Patient'+PatientNumber+'/loupas/avolume_ts8_737_370_366.nii.gz'
